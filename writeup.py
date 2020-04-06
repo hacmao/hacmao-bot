@@ -23,7 +23,7 @@ async def original_writeups(link):
     trs = soup.findAll("tr")
 
     # For getting tasks links
-    for ind, tr in enumerate(trs[1:]):
+    for ind, tr in enumerate(trs[1:], start=1):
         rated = {}
         gen = tr.text.split("\n")
 
@@ -31,15 +31,16 @@ async def original_writeups(link):
         if gen[-1] == str(0):
             continue
         
-        url = ROOT_URL + tr.find("a").get("href")
-        soup = await make_soup(url)
-        para = soup.findAll("p")
-        name = soup.find("h2").text
-        if len(name) > 15 : 
-            name = name[:15] + " ..." 
-        point = para[0].text.split(":")[-1].strip()
-        tags = para[1].text.split(":")[-1].split("\xa0")
-        tags = ", ".join(i for i in tags[:-1])
+        columns = tr.findAll("td") 
+        url = "ctftime.org" + columns[0].find('a').get("href") 
+        name = columns[0].text 
+        if len(name) > 20 : 
+            name = name[:18] + "..."
+        point = columns[1].text 
+        tags = ""
+        for tag in columns[2].findAll("span") : 
+            tags += tag.text + ","
+
         if len(tags) > 15 : 
             tags = tags[:15] + " ..." 
         info.append([ind, name, point, tags, url])
@@ -70,7 +71,7 @@ async def original_writeups_tag(link, ortag):
     trs = soup.findAll("tr")
 
     # For getting tasks links
-    for ind, tr in enumerate(trs[1:]):
+    for ind, tr in enumerate(trs[1:], start=1):
         rated = {}
         gen = tr.text.split("\n")
 
@@ -78,15 +79,19 @@ async def original_writeups_tag(link, ortag):
         if gen[-1] == str(0):
             continue
         
-        url = ROOT_URL + tr.find("a").get("href")
-        soup = await make_soup(url)
-        para = soup.findAll("p")
-        name = soup.find("h2").text
-        point = para[0].text.split(":")[-1].strip()
-        tags = para[1].text.split(":")[-1].split("\xa0")
-        tags = ", ".join(i for i in tags[:-1])
+        columns = tr.findAll("td") 
+        url = "ctftime.org" + columns[0].find('a').get("href") 
+        name = columns[0].text 
+        if len(name) > 20 : 
+            name = name[:18] + "..."
+        point = columns[1].text 
+        tags = ""
+        for tag in columns[2].findAll("span") : 
+            tags += tag.text + ","
         if ortag not in tags : 
             continue 
+        if len(tags) > 15 : 
+            tags = tags[:15] + " ..." 
         info.append([ind, name, point, tags, url])
         tmp = tabulate(info, headers, tablefmt="fancy_grid") 
         if len(tmp) >= 1994 : 
