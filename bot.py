@@ -284,13 +284,82 @@ async def on_message(message):
         current_ctf = ctf_list[ctf_name]
         ctfd_link_wu = current_ctf["ctfd_link"] + "/tasks/" 
         argv = message.content.split(" ") 
-        if len(argv) != 2 : 
+        if len(argv) > 2 : 
             await message.channel.send("`USAGE : !writeup <category>?`") 
             return 
         elif len(argv) == 2 : 
             msgs = await original_writeups_tag(ctfd_link_wu, argv[1])
             for msg in msgs : 
                 await message.channel.send(msg)
+        else : 
+            msgs =  await original_writeups(ctfd_link_wu)
+            for msg in msgs : 
+                await message.channel.send(msg)
+
+    if content.startswith("!addp") : 
+        author = message.author 
+        if author.top_role.name != "admin" : 
+            await message.channel.send("Chỉ có sư huynh, sư tỉ mới được quyền cộng điểm. ¯\_(ツ)_/¯") 
+            return 
+        
+        args = content.split(" ") 
+        if len(args) != 2 : 
+            await message.channel.send("`USAGE : !addp <points>") 
+            return 
+        
+        points = args[1] 
+        if not points.isdigit() :  
+            await message.channel.send("Điểm phải là số") 
+            return 
+        ctf_name = getChannelCategory(message.channel).name 
+        ctf_list = json.load(open("ctf.json", "r")) 
+        challenge_name = message.channel.name 
+        if ctf_name not in ctf_list.keys() : 
+            await message.channel.send("Sai kênh rồi biểu huynh :))")  
+            return 
+        
+        current_ctf = ctf_list[ctf_name] 
+        if current_ctf['challenge'][challenge_name] == None : 
+            await message.channel.send('Challenge phải được giải trước khi cộng điểm.')
+            return   
+        user_solve = current_ctf['challenge'][challenge_name] 
+        if "scoreboard" not in current_ctf.keys() : 
+            current_ctf['scoreboard'] = {} 
+        if user_solve not in current_ctf['scoreboard'].keys() : 
+            current_ctf['scoreboard'][user_solve] = 0 
+        current_ctf['scoreboard'][user_solve] += int(points)  
+        json.dump(ctf_list, open("ctf.json", "w")) 
+    
+    if content.startswith("!sc") : 
+        headers = ["TOP", "Username", "Points"] 
+        info = []
+        msgs = []
+        ctf_name = getChannelCategory(message.channel).name 
+        ctf_list = json.load(open("ctf.json", "r")) 
+        challenge_name = message.channel.name 
+        if ctf_name not in ctf_list.keys() : 
+            await message.channel.send("Sai kênh rồi biểu huynh :))")  
+            return 
+        current_ctf = ctf_list[ctf_name] 
+
+        if "scoreboard" not in current_ctf.keys() :  
+            await message.channel.send("No solved yet") 
+            return 
+        
+        scoreboard = current_ctf['scoreboard'] 
+        scoreboard = sorted(scoreboard.items(), key = lambda kv:(kv[0], kv[1]))
+        for ind, user in enumerate(scoreboard, start=1) : 
+            username, points = user
+            info.append([ind, username, points]) 
+            tmp = tabulate(info, headers, tablefmt="fancy_grid") 
+            if len(tmp) >= 1994 : 
+                tmp = tabulate(info[:-1], headers, tablefmt="fancy_grid") 
+                msgs.append("```" + tmp + "```") 
+                info = [info[-1]] 
+        table = tabulate(info, headers, tablefmt="fancy_grid") 
+        msgs.append("```" + table + "```" )
+        for msg in msgs : 
+            await message.channel.send(msg) 
 
     if content.startswith("!rank") :  
         headers = ["TOP", "Name", "Points"] 
@@ -306,12 +375,22 @@ async def on_message(message):
 
         await message.channel.send(msg)
 
+    if content.startswith("!addwu") : 
+        args = content.split(" ") 
+        user_id = int(args[1][3:-1])
+        user = get(client.get_all_members(), id=user_id).name
+        users_list = json.load(open("users.json", "r")) 
+        users_list[user]['points'] += 3
+        json.dump(users_list, open("users.json", "w"))
+        
+
     # log data and check user 
     current_time = int(time.time())
     username = message.author.name 
     users = json.load(open("users.json", "r"))  
     if username not in users.keys() : 
         users[username] = {"last_access" : current_time}
+    users[username]["last_access"] = current_time
     json.dump(users, open("users.json", "w"))
     if checkDate() : 
         channel = get(client.get_all_channels(), name="bot-nhac-nho")
