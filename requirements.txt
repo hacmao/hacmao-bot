@@ -1,2 +1,9 @@
 discord
 datetime
+tabulate
+python-dateutil
+regex
+bs4
+asyncio
+aiohttp
+lxml
