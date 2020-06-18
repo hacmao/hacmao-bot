@@ -9,7 +9,7 @@ import time
 TOKEN = 'Njk1ODk1NDU5NjkyMTUwODQ1.XohEwg.ufQKWbb8dw4DdmUoPqoZBaCcADY'
 default_time = 1586016335
 MONTH = 60 * 60 * 24 * 30
-WEEK = 60 * 60 * 24 
+WEEK = 60 * 60 * 24 * 7 
 client = discord.Client()
 monthly = ["2020-05-01 00:00:00", 
     "2020-06-01 00:00:00", "2020-04-22 00:00:00", 
@@ -204,6 +204,7 @@ async def on_message(message):
     username = message.author.name 
     users = json.load(open("users.json", "r"))  
     users[username] = current_time
+    """
     if checkDate() : 
         channel = get(client.get_all_channels(), name="bot-nhac-nho")
         for user in users.keys() :  
@@ -215,8 +216,8 @@ async def on_message(message):
                 await channel.send("{0.mention} ơi! Bạn đâu rồi !!!".format(user_)) 
             if current_time - users[user] > WEEK * 4 : 
                 await channel.send("Hacmao_bot lost his patient with {0}".format(user_.name)) 
-                await client.kick(user_)  
-        
+                #await client.kick(user_)  
+    """        
 
 @client.event
 async def on_ready():
